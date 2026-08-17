@@ -26,9 +26,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
+# Debian 12's Python is "externally managed" (PEP 668) and refuses plain
+# `pip install` outside a venv. Our own installs below pass
+# --break-system-packages explicitly, but Kokoro's phonemizer (misaki)
+# lazily runs its OWN bare `pip install` at first use to fetch a spaCy
+# model — that call has no flag to pass, so it hard-crashed the very first
+# TTS run on a fresh pod. This env var makes pip behave as if
+# --break-system-packages were always passed, covering that internal call
+# too (see build log: a production run crashed here, root-caused, fixed).
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+
 # --- Python deps (cached as its own layer — changes far less often than pipeline code) ---
 COPY requirements.txt .
 RUN python3 -m pip install --no-cache-dir --break-system-packages -r requirements.txt
+
+# Pre-warm Kokoro's model + its spaCy dependency at build time, so a fresh
+# pod's first TTS call doesn't pay for (or risk failing) that download.
+RUN python3 -c "from kokoro import KPipeline; KPipeline(lang_code='a')"
 
 # --- Remotion / Node deps ---
 COPY remotion/package.json remotion/package-lock.json remotion/
