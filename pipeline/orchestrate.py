@@ -211,11 +211,90 @@ def run_pipeline(title: str | None, channel_id: str, photo_path: Path) -> dict:
     }
 
 
+def run_pipeline_resume(story_path: Path, photo_path: Path, channel_id: str, thumbnail_variants: int = 3) -> dict:
+    """Resumes from an already-generated story (title/story generation
+    already ran, e.g. so a specific verified story doesn't get thrown away
+    and regenerated) straight through metadata/photo/voiceover/render/
+    thumbnail/upload-package. Produces `thumbnail_variants` hook-text
+    variants instead of one, matching the multi-variant upload workflow."""
+    story = json.loads(Path(story_path).read_text(encoding="utf-8"))
+    title = story["title"]
+    slug = slugify(title)
+    out_dir = ROOT / "out" / channel_id
+
+    print("=" * 60)
+    print(f"[RESUME] {title!r} ({story['total_word_count']} words)")
+
+    print("[1/6] Generating metadata")
+    metadata = generate_metadata(story)
+    metadata_path = save_metadata(metadata, story, channel_id)
+    print(f"    -> {metadata_path}")
+
+    print("[2/6] Processing protagonist photo")
+    photos = process_photo(photo_path, channel_id, slug)
+    print(f"    -> original: {photos['original']}")
+    print(f"    -> cutout:   {photos['cutout']}")
+
+    print("[3/6] Generating voiceover")
+    audio_path = generate_voiceover(story, channel_id)
+
+    print("[4/6] Generating captions")
+    captions = generate_captions(audio_path)
+    captions_path = out_dir / f"{slug}_captions.json"
+    captions_path.write_text(json.dumps(captions, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"    -> {captions_path}")
+
+    print("[5/6] Selecting background footage + rendering final video")
+    duration_seconds = (max(c["endFrame"] for c in captions) / FPS) if captions else None
+    background_videos = get_background_clips(duration_seconds)
+    intro_hook = metadata["titles"][0]
+    video_path = render_main_video(
+        background_videos, photos["cutout"], audio_path, captions, intro_hook, out_dir / f"{slug}_video.mp4"
+    )
+    print(f"    -> {video_path}")
+
+    print("[6/6] Thumbnail crop + variants + upload package")
+    from PIL import Image
+
+    img = Image.open(photos["original"])
+    w, h = img.size
+    thumb_photo_path = out_dir / f"{slug}_thumb_source.jpg"
+    img.crop((0, int(h * 0.02), w, int(h * 0.78))).convert("RGB").save(thumb_photo_path, quality=95)
+
+    thumbnail_paths = []
+    for i in range(1, thumbnail_variants + 1):
+        hook_text = generate_thumbnail_hook(story)
+        thumb_out = out_dir / f"{slug}_thumbnail_variant{i}.png"
+        render_thumbnail(thumb_photo_path, hook_text, thumb_out)
+        thumbnail_paths.append(thumb_out)
+        print(f"    -> variant {i}: {thumb_out}\n       hook: {hook_text}")
+
+    package_dir = save_upload_package(metadata, thumbnail_paths[0], slug, channel_id, video_path)
+    (package_dir / "thumbnail.png").rename(package_dir / "thumbnail_variant1.png")
+    for i, extra in enumerate(thumbnail_paths[1:], start=2):
+        shutil.copy(extra, package_dir / f"thumbnail_variant{i}.png")
+    print(f"    -> {package_dir}")
+
+    print("=" * 60)
+    print("DONE:")
+    print(f"  video:   {video_path}")
+    print(f"  package: {package_dir}")
+
+    return {"metadata": metadata_path, "video": video_path, "package": package_dir}
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print('Usage: python -m pipeline.orchestrate "<title>|auto" <photo_path> [channel_id]')
+        print("       python -m pipeline.orchestrate --resume <story_path> <photo_path> [channel_id]")
         sys.exit(1)
-    title_arg = sys.argv[1]
-    photo_arg = Path(sys.argv[2])
-    channel_arg = sys.argv[3] if len(sys.argv) > 3 else "channel-a"
-    run_pipeline(None if title_arg == "auto" else title_arg, channel_arg, photo_arg)
+    if sys.argv[1] == "--resume":
+        story_arg = Path(sys.argv[2])
+        photo_arg = Path(sys.argv[3])
+        channel_arg = sys.argv[4] if len(sys.argv) > 4 else "channel-a"
+        run_pipeline_resume(story_arg, photo_arg, channel_arg)
+    else:
+        title_arg = sys.argv[1]
+        photo_arg = Path(sys.argv[2])
+        channel_arg = sys.argv[3] if len(sys.argv) > 3 else "channel-a"
+        run_pipeline(None if title_arg == "auto" else title_arg, channel_arg, photo_arg)
