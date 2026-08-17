@@ -1,0 +1,32 @@
+.env
+.env.pod
+__pycache__/
+
+# local-machine-only, not project source
+.claude/
+data/
+jobs_batch*.json
+logs/
+*.pyc
+.venv/
+venv/
+node_modules/
+
+# generated per-run artifacts
+out/*/*.mp4
+out/*/*.mp3
+out/*/*.wav
+out/*/*.json
+!out/*/.gitkeep
+logs/*.log
+
+# downloaded/large assets (kept locally, not versioned)
+assets/stock/*
+!assets/stock/.gitkeep
+assets/music/*
+!assets/music/.gitkeep
+assets/photos/*/*
+!assets/photos/*/.gitkeep
+
+# files staged for Remotion render (raw local paths aren't loadable by Chrome's renderer)
+remotion/public/generated/

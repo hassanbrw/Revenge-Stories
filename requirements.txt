@@ -1,0 +1,9 @@
+python-dotenv
+requests
+google-genai
+kokoro
+soundfile
+elevenlabs
+faster-whisper
+rembg
+boto3

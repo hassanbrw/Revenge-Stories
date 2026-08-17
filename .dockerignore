@@ -1,0 +1,25 @@
+# Node
+node_modules
+remotion/node_modules
+remotion/out
+
+# Generated/working output — never bake video/audio into the image
+out/
+ready_for_upload/
+assets/photos
+assets/stock
+assets/music
+logs/
+
+# Secrets — passed at `docker run` time via --env-file, never baked in
+.env
+.env.*
+!.env.example
+
+# VCS / Python / misc
+.git
+__pycache__
+*.pyc
+.venv
+venv
+*.log

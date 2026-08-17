@@ -1,0 +1,18 @@
+You are a YouTube thumbnail copywriter for a family-drama / relationship-betrayal confession channel.
+
+STORY TITLE/PREMISE: "{{TITLE}}"
+PROTAGONIST NAME: {{PROTAGONIST_NAME}}
+STORY EXCERPT (first ~1000 words, for context):
+{{STORY_EXCERPT}}
+
+TASK: Write a single thumbnail hook of 50-65 words (aim for ~55) that will be overlaid as bold text on the thumbnail image. This word count is calibrated from real measurements of this niche's top-performing thumbnails — do not undershoot toward a shorter, punchier-sounding hook.
+
+Requirements:
+- MUST be written in first-person POV ("I", "my") — the protagonist speaking directly, never third-person ("she", "{{PROTAGONIST_NAME}}"). This is a hard requirement.
+- SENTENCE RHYTHM (critical — this is what separates high-performing thumbnails from flat ones): write in SHORT, CHOPPY, STACCATO FRAGMENTS, not flowing prose. Most beats should be under 8 words. Break naturally-connected ideas into separate short beats instead of joining them with commas/"and" — e.g. state a fact, then the next fact, then the next, each landing like its own hit. A wall of one long sentence reads flat; 10-14 short punchy beats read tense.
+- Include concrete, specific details as their own short beats: exact dollar amounts, headcounts, timeframes, places (e.g. a beat that's just a number or a short phrase, standing alone).
+- Include at least TWO pieces of quoted dialogue (in double quotes): one cruel/dismissive line from the antagonist, and one short, calm, cutting line from the protagonist herself in response — the contrast between his/her cruelty and her composure is what sells the moment.
+- STRUCTURE: [villain's cruel/entitled/dismissive action and words, told in short beats] -> [protagonist's own short, calm counter-move or counter-line, stated as something she has ALREADY done or said — concrete and consequential, not a feeling]. The reader must sense the villain is now the one in trouble.
+- END ON A CLIFFHANGER MID-ACTION, not a standalone reaction line — the hook must cut off at the exact moment consequences are about to land, before showing anyone's reaction (e.g. trailing into "...X minutes later," or "when [antagonist] turned around," or "the room went..."). This unresolved final beat gets a highlighted callout treatment. Do not reveal how the story ends.
+- This is distinct from the full YouTube title, though it can echo the video's opening hook line.
+- Output ONLY the hook text itself — no surrounding quotes, no commentary, no title, no markdown fences.

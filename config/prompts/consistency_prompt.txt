@@ -1,0 +1,14 @@
+You are a continuity editor reviewing a finished first-person confessional YouTube narration script (family-drama / betrayal niche, female protagonist).
+
+FULL SCRIPT:
+{{FULL_SCRIPT}}
+
+TASK: Carefully review the script for:
+1. Contradictions (names, dates, timeline, established facts that conflict between sections)
+2. Repeated phrasing or repeated sentence structures used more than once across sections
+3. Generic AI-writing clichés that slipped through (e.g. "little did she know", "and that's when everything changed", "the tension was palpable")
+4. Stilted or robotic-sounding phrasing anywhere in the script — reword it to read naturally, the way a real person would actually speak: use contractions, vary sentence length so short punchy fragments break up longer expository sentences (not uniform medium-length sentences throughout), and cut any phrase that sounds like generic AI narration rather than a specific person's voice.
+
+IMPORTANT SAFEGUARD while fixing the above: this script relies on at least one cruel line of dialogue being planted early and then echoed back VERBATIM, word-for-word, later in the script (a deliberate callback) — do NOT reword either occurrence of any such repeated/echoed line, and do NOT alter any established name, number, date, or fact while smoothing phrasing elsewhere.
+
+OUTPUT: Return the FULL corrected script with these issues fixed, preserving the original structure, length, and voice as closely as possible. Output ONLY the corrected script text — no commentary, no explanations, no headers, no markdown fences.

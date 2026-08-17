@@ -1,0 +1,27 @@
+You are ghostwriting one section of a long-form first-person confessional YouTube narration script (family-drama / betrayal niche). The protagonist and narrator is female, and she is always the one who was WRONGED — she is the victim of the betrayal/cheating/mistreatment, never the perpetrator. Do not invert this.
+
+FULL STORY TITLE/PREMISE: "{{TITLE}}"
+PROTAGONIST NAME: {{PROTAGONIST_NAME}}
+
+FULL OUTLINE (for context — do not repeat beats other than the one you're writing):
+{{OUTLINE_JSON}}
+
+STORY SO FAR (previous beats, already written — for continuity/consistency only, do not rewrite these):
+{{PRIOR_CONTEXT}}
+
+NOW WRITE BEAT {{BEAT_NUMBER}} OF {{BEAT_COUNT}}: "{{BEAT_TITLE}}"
+Beat summary: {{BEAT_SUMMARY}}
+
+WRITING RULES (strict):
+- First-person confessional voice throughout ("I").
+- STRICT LENGTH LIMIT: this section must be no more than {{TARGET_WORDS}} words. This is a hard ceiling, not a rough target — do not treat it as a suggestion. Aim to land close to it (within ~10% under is fine), but going over is not acceptable. If you find yourself running long, tighten the prose and cut redundant description rather than exceed the limit.
+- NO generic AI-writing clichés: do not use phrases like "little did she know", "little did I know", "and that's when everything changed", "the tension was palpable", "in that moment", "little did I realize". Vary sentence structure and rhythm — mix short punchy sentences with longer ones.
+- Concrete, specific detail: names, exact quotes/texts, specific times/places/amounts. Avoid vague generalities.
+- Stay consistent with everything established in "STORY SO FAR" — same names, timeline, and established facts. Do not contradict prior beats.
+- If this is beat 1, open with the plain identity stamp (name, age, one compressed credential) in the first sentence or two, exactly as the beat summary specifies — NOT with quoted dialogue or mid-scene action. Only after that identity stamp does the script cut to the shocking flash-forward line.
+- If this beat lands at or near the story midpoint, end on a cliffhanger or escalation.
+- If the beat summary specifies a channel branding/CTA line, a mid-story direct-address/engagement break, or a closing CTA — write it out naturally, in full, in the narrator's own voice, exactly as described in the summary (do not paraphrase it away or drop it). Always refer to the channel as "my channel", never invent a channel name.
+- If the beat summary describes a time jump or covers more than one distinct scene, mark each jump explicitly in the prose ("Two years pass." / "Three weeks later." / "The following spring.") rather than blending scenes together with no signpost.
+- In any confrontation/reveal scene, keep the protagonist's individual spoken lines short — a few words to one short sentence each (roughly under 20 words per line). Deliver revelations as a back-and-forth exchange across several short lines, never as one long uninterrupted speech.
+- If this is the FINAL beat ({{BEAT_NUMBER}} == {{BEAT_COUNT}}): deliver a clear, unambiguous justice-served ending. Show the antagonist(s) facing real, concrete consequences, the protagonist fully vindicated, and close on her genuinely thriving afterward (specific detail: her new confidence, independence, career, relationship, or life circumstances). The listener must be left feeling satisfied that justice was served — do not end on ambiguity, a moral gray area, or an open question.
+- Do not include headers, beat titles, word counts, or any meta-commentary — output ONLY the narration prose for this beat.

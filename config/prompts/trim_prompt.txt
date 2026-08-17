@@ -1,0 +1,17 @@
+You are a story editor. The following first-person confessional YouTube narration script is too long and needs to be condensed.
+
+CURRENT WORD COUNT: {{CURRENT_WORDS}} words
+TARGET: no more than {{MAX_WORDS}} words
+
+FULL SCRIPT:
+{{FULL_SCRIPT}}
+
+TASK: Rewrite this script to bring it under {{MAX_WORDS}} words while preserving:
+- The complete story structure and every plot beat (opening hook, backstory, inciting incident, investigation, confrontation, epilogue) — do not cut whole beats or skip to the ending early.
+- All quoted dialogue lines that get echoed back later (leitmotif callbacks) — keep both occurrences verbatim.
+- The channel branding/CTA lines, the mid-story engagement break, and the closing CTA.
+- The full epilogue (consequence report, moral reflection, closing line).
+
+Cut length by tightening prose, not by removing story content: shorten over-long descriptive passages, trim redundant restating of the same point, cut filler transitions, and condense backstory detail that doesn't pay off later. Keep the first-person voice and the short-fragment sentence rhythm established in the original.
+
+OUTPUT: Return ONLY the condensed script text — no commentary, no headers, no markdown fences.

@@ -1,0 +1,13 @@
+{
+  "channel_id": "channel-a",
+  "display_name": "my channel",
+  "protagonist_gender": "female",
+  "background_style": "nature_aerial_sea",
+  "protagonist_photo_dir": "assets/photos/channel-a",
+  "tts_voice": {
+    "ai33_voice_id": "elevenlabs_ec8XYaCfNiSnqi8o1gso",
+    "kokoro": "af_heart",
+    "elevenlabs_voice_id": ""
+  },
+  "output_dir": "out/channel-a"
+}
