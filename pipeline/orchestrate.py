@@ -13,6 +13,15 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
+# Windows' console defaults stdout/stderr to the system codepage (cp1252),
+# which can't encode arbitrary Unicode (e.g. a stock-footage creator's
+# display name containing a symbol like a chess piece) — a real production
+# run crashed on exactly this the first time an unlucky name showed up.
+# UTF-8 can encode everything we'll ever print; Linux/Docker already
+# defaults to UTF-8 so this is a no-op there.
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 import soundfile as sf
 
 from pipeline.captions import generate_captions
