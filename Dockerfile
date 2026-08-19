@@ -17,12 +17,19 @@ FROM node:20-bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip \
     ffmpeg espeak-ng \
-    ca-certificates curl wget \
+    ca-certificates curl wget unzip \
     libnss3 libdbus-1-3 libatk1.0-0 libatk-bridge2.0-0 libgbm1 \
     libasound2 libxrandr2 libxkbcommon0 libxfixes3 libxcomposite1 \
     libxdamage1 libpango-1.0-0 libcairo2 libcups2 fonts-liberation \
     libnspr4 xdg-utils \
     && rm -rf /var/lib/apt/lists/*
+
+# rclone -> uploads the finished video+thumbnail+description zip to Google
+# Drive (pipeline/orchestrate.py's zip_and_upload_package). The pod needs
+# its own rclone.conf at runtime (holds the Drive OAuth token) — that's a
+# secret, so it's copied in via `docker run -v` alongside the input photo,
+# never baked into the image. See .env.pod.example for the run command.
+RUN curl https://rclone.org/install.sh | bash
 
 WORKDIR /app
 
@@ -61,6 +68,8 @@ COPY config/ config/
 ENV PYTHONUNBUFFERED=1
 
 # Matches the existing local CLI exactly:
-#   docker run --env-file .env.pod -v <in>:/data/in -v <out>:/app/out -v <out>:/app/ready_for_upload \
+#   docker run --env-file .env.pod \
+#     -v <in>:/data/in -v <out>:/app/out -v <out>:/app/ready_for_upload \
+#     -v ~/.config/rclone/rclone.conf:/root/.config/rclone/rclone.conf:ro \
 #     ghcr.io/<owner>/<repo>:latest "auto" /data/in/photo.jpg channel-a
 ENTRYPOINT ["python3", "-m", "pipeline.orchestrate"]

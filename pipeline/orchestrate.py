@@ -133,6 +133,32 @@ def save_upload_package(metadata: dict, thumbnail_path: Path, slug: str, channel
     return package_dir
 
 
+# gdrive: remote + base folder already set up via rclone on the production
+# machine (see build log — used earlier for pipeline-code sync). Override
+# with DRIVE_REMOTE in .env if the destination ever changes.
+DRIVE_REMOTE = env("DRIVE_REMOTE", "gdrive:Family Drama Video Pipeline/Finished Videos")
+
+
+def zip_and_upload_package(package_dir: Path, channel_id: str) -> None:
+    """Zips the finished video+thumbnail(s)+description package and uploads
+    it to Google Drive via rclone. Best-effort: a missing/misconfigured
+    rclone shouldn't fail an otherwise-finished pipeline run — skip the
+    upload with a warning and leave the zip sitting locally instead."""
+    zip_path = package_dir.parent / f"{package_dir.name}.zip"
+    print(f"[Drive upload] Zipping {package_dir.name}...")
+    shutil.make_archive(str(zip_path.with_suffix("")), "zip", package_dir)
+
+    dest = f"{DRIVE_REMOTE}/{channel_id}/"
+    try:
+        subprocess.run(["rclone", "copy", str(zip_path), dest], check=True, capture_output=True, text=True)
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        detail = e.stderr if isinstance(e, subprocess.CalledProcessError) else str(e)
+        print(f"    -> WARNING: Drive upload failed/skipped ({detail}) — zip kept locally at {zip_path}")
+        return
+    print(f"    -> uploaded to {dest}{zip_path.name}")
+    zip_path.unlink(missing_ok=True)
+
+
 def run_pipeline(title: str | None, channel_id: str, photo_path: Path) -> dict:
     if title is None:
         print("[0/7] No title given — generating one from the micro-niche style guide")
@@ -193,6 +219,7 @@ def run_pipeline(title: str | None, channel_id: str, photo_path: Path) -> dict:
     print("[Upload package] Moving video + copying title/description/thumbnail to ready_for_upload/")
     package_dir = save_upload_package(metadata, thumbnail_path, slug, channel_id, video_path)
     print(f"    -> {package_dir}")
+    zip_and_upload_package(package_dir, channel_id)
 
     print("=" * 60)
     print("DONE — ready for manual upload:")
@@ -274,6 +301,7 @@ def run_pipeline_resume(story_path: Path, photo_path: Path, channel_id: str, thu
     for i, extra in enumerate(thumbnail_paths[1:], start=2):
         shutil.copy(extra, package_dir / f"thumbnail_variant{i}.png")
     print(f"    -> {package_dir}")
+    zip_and_upload_package(package_dir, channel_id)
 
     print("=" * 60)
     print("DONE:")
