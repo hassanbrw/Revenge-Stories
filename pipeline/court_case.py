@@ -272,12 +272,58 @@ def assemble(manifest_path: str, dry_run: bool = False) -> Path:
     return output
 
 
+def fetch_manifest(manifest_path: str) -> Path:
+    """Resolve a manifest's queries via serper.dev: download a b-roll image for
+    every narration beat that has an `image_query`, and fill each clip beat's
+    `source` from its `query`. Writes a *.resolved.json* for you to review (set
+    in/out timestamps, swap any wrong clip) before rendering — never renders
+    blind off an auto-picked video."""
+    from pipeline.sourcing import best_video_url, download_image
+
+    path = Path(manifest_path)
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    img_dir = ROOT / "assets" / "court_case"
+
+    for i, seg in enumerate(manifest["segments"]):
+        sid = str(seg.get("id", i)).replace(".", "_")
+        if seg["type"] == "narration" and seg.get("image_query"):
+            if seg.get("broll") and (ROOT / seg["broll"]).exists():
+                continue  # already have this still
+            print(f"[img] segment {seg.get('id', i)}: {seg['image_query']!r}")
+            out = download_image(seg["image_query"], img_dir / sid)
+            if out:
+                seg["broll"] = str(out.relative_to(ROOT))
+        elif seg["type"] == "clip" and seg.get("query"):
+            src = seg.get("source", "")
+            if src and not src.startswith("TODO"):
+                continue  # a real URL is already set — leave it
+            print(f"[vid] segment {seg.get('id', i)}: {seg['query']!r}")
+            url, candidates = best_video_url(seg["query"])
+            seg["source"] = url or seg.get("source", "")
+            # keep alternatives for human review; ignored by the renderer
+            seg["_candidates"] = [
+                {"title": c.get("title", ""), "link": c.get("link", "")}
+                for c in candidates[:5]
+            ]
+            print(f"      -> {url or '(none found)'}")
+
+    out_path = path.with_suffix(".resolved.json")
+    out_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"\nResolved manifest written -> {out_path}")
+    print("REVIEW IT: set each clip's start/end, swap any wrong clip (see _candidates), then render it.")
+    return out_path
+
+
 def main():
     ap = argparse.ArgumentParser(description="Assemble a court-case video from a manifest.")
     ap.add_argument("manifest", help="path to the manifest JSON")
     ap.add_argument("--dry-run", action="store_true", help="validate + print the plan, no download/render")
+    ap.add_argument("--fetch", action="store_true", help="serper.dev: download b-roll images + resolve clip URLs, write a *.resolved.json for review")
     args = ap.parse_args()
-    assemble(args.manifest, dry_run=args.dry_run)
+    if args.fetch:
+        fetch_manifest(args.manifest)
+    else:
+        assemble(args.manifest, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":

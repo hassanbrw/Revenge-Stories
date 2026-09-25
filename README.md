@@ -79,9 +79,18 @@ generated story.
 ### Run
 
 ```bash
-python -m pipeline.court_case config/court_cases/guyger.json --dry-run   # validate + print plan
-python -m pipeline.court_case config/court_cases/guyger.json             # download + render -> out/<name>.mp4
+python -m pipeline.court_case config/court_cases/guyger.json --fetch     # serper.dev: download b-roll + resolve clip URLs -> *.resolved.json
+python -m pipeline.court_case config/court_cases/guyger.resolved.json --dry-run   # validate + print plan
+python -m pipeline.court_case config/court_cases/guyger.resolved.json             # download + render -> out/<name>.mp4
 ```
+
+`--fetch` (needs `SERPER_API_KEY` in `.env`, code in `pipeline/sourcing.py`) uses
+serper.dev to auto-source assets: it downloads a b-roll still for every narration
+beat that has an `image_query`, and fills each clip beat's `source` from its
+`query`. It writes a `*.resolved.json` (never renders blind) — **review it**: set
+each clip's `start`/`end`, and swap any wrong auto-picked clip (alternatives are
+saved under each clip's `_candidates`). Then render the resolved manifest. If you
+prefer, skip `--fetch` and paste URLs / drop images in by hand.
 
 ### Manifest schema
 
