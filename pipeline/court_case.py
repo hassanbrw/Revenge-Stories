@@ -76,24 +76,56 @@ def _esc(text: str) -> str:
     )
 
 
-def _drawtext(text: str, res: str) -> str:
-    """A lower-third style burned caption. Kept as one reusable filter so every
-    segment's on-screen text looks identical (channel consistency)."""
-    w = res.split("x")[0]
+# Caption presets, matched to the reference channel's look (see build notes):
+#   headline    - big bold ALL-CAPS, centred, dark box  (title beats)
+#   lower_third - news banner, bottom-left               (default captions)
+#   location    - small label on a RED box               (place pins e.g. "DALLAS, TX")
+def _drawtext(text: str, res: str, style: str = "lower_third") -> str:
+    """One reusable caption filter so every segment's on-screen text looks
+    identical (channel consistency). `style` picks the preset."""
+    if style == "headline":
+        t = _esc(text.upper())
+        return (
+            f"drawtext=fontfile='{FONT}':text='{t}':fontcolor=white:fontsize=58:"
+            f"box=1:boxcolor=black@0.72:boxborderw=26:x=(w-text_w)/2:y=(h-text_h)/2:"
+            f"line_spacing=10"
+        )
+    if style == "location":
+        return (
+            f"drawtext=fontfile='{FONT}':text='{_esc(text.upper())}':fontcolor=white:"
+            f"fontsize=34:box=1:boxcolor=red@0.85:boxborderw=14:x=70:y=h-150"
+        )
+    # lower_third (default)
     return (
-        f"drawtext=fontfile='{FONT}':text='{_esc(text)}':"
-        f"fontcolor=white:fontsize=42:box=1:boxcolor=black@0.6:boxborderw=18:"
-        f"x=(w-text_w)/2:y=h-160:line_spacing=8"
+        f"drawtext=fontfile='{FONT}':text='{_esc(text)}':fontcolor=white:fontsize=42:"
+        f"box=1:boxcolor=black@0.62:boxborderw=18:x=70:y=h-160:line_spacing=8"
     )
 
 
-def _norm_filters(res: str, fps: int) -> str:
+def _norm_filters(res: str, fps: int, grade: str = "") -> str:
     """Scale+pad any input to the target canvas without distortion (letterbox
-    if aspect differs) so mismatched source clips concat cleanly."""
+    if aspect differs) so mismatched source clips concat cleanly. `grade=bw`
+    desaturates + lifts contrast to signal 'serious / past events', the way the
+    reference channel treats courtroom and bodycam footage."""
     w, h = res.split("x")
-    return (
+    vf = (
         f"scale={w}:{h}:force_original_aspect_ratio=decrease,"
         f"pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:black,setsar=1,fps={fps}"
+    )
+    if grade == "bw":
+        vf += ",hue=s=0,eq=contrast=1.12:brightness=0.02"
+    return vf
+
+
+def _kenburns(res: str, fps: int, dur: float) -> str:
+    """Slow constant zoom on a still — the reference channel puts this on almost
+    every static image so nothing sits dead on screen. Pre-scale up first so the
+    zoom stays smooth instead of jittering on integer pixel steps."""
+    w, h = res.split("x")
+    frames = max(1, int(dur * fps))
+    return (
+        f"scale=2560:-2,zoompan=z='min(zoom+0.0009,1.25)':d={frames}:"
+        f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s={w}x{h}:fps={fps},setsar=1"
     )
 
 
@@ -115,9 +147,10 @@ def build_clip_segment(seg, idx, work, res, fps, voice_id):
         "--force-keyframes-at-cuts", "-o", str(raw), seg["source"],
     ])
 
-    vf = _norm_filters(res, fps)
+    # grade:"bw" -> desaturate court/bodycam footage; text/style -> caption preset
+    vf = _norm_filters(res, fps, grade=seg.get("grade", ""))
     if seg.get("text"):
-        vf += "," + _drawtext(seg["text"], res)
+        vf += "," + _drawtext(seg["text"], res, seg.get("style", "lower_third"))
 
     out = _seg_path(work, idx)
     if seg.get("vo"):
@@ -156,16 +189,16 @@ def build_narration_segment(seg, idx, work, res, fps, voice_id):
     print(f"[VO] ai33 narration for segment {seg.get('id', idx)}")
     _synthesize_ai33(seg["vo"], voice_id, vo_mp3)
     dur = _probe_duration(vo_mp3)
-
-    vf = _norm_filters(res, fps)
-    if seg.get("text"):
-        vf += "," + _drawtext(seg["text"], res)
+    style = seg.get("style", "lower_third")
 
     out = _seg_path(work, idx)
     broll = seg.get("broll")
     if broll:
-        # Loop the still for the VO's duration (Ken-Burns-free; add zoompan
-        # later if wanted). -t bounds it to the audio length.
+        # Ken Burns slow-zoom on the still for exactly the VO length, then
+        # caption. Matches the reference channel (no static images sit dead).
+        vf = _kenburns(res, fps, dur)
+        if seg.get("text"):
+            vf += "," + _drawtext(seg["text"], res, style)
         _run([
             "ffmpeg", "-y", "-loop", "1", "-i", str((ROOT / broll)),
             "-i", str(vo_mp3), "-t", f"{dur:.3f}",
@@ -174,11 +207,13 @@ def build_narration_segment(seg, idx, work, res, fps, voice_id):
             "-f", "mpegts", str(out),
         ])
     else:
+        # No still supplied -> hold black under the VO (still burn any caption).
         w, h = res.split("x")
+        vf = _drawtext(seg["text"], res, style) if seg.get("text") else "null"
         _run([
             "ffmpeg", "-y", "-f", "lavfi", "-i",
             f"color=c=black:s={w}x{h}:r={fps}", "-i", str(vo_mp3),
-            "-t", f"{dur:.3f}", "-vf", (vf if seg.get("text") else "null"),
+            "-t", f"{dur:.3f}", "-vf", vf,
             "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
             "-c:a", "aac", "-ar", "44100", "-ac", "2", "-pix_fmt", "yuv420p",
             "-f", "mpegts", str(out),

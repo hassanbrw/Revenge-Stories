@@ -4,12 +4,12 @@
   "resolution": "1280x720",
   "fps": 30,
   "output": "out/guyger.mp4",
-  "_help": "type=clip needs source(YouTube URL)+start+end (HH:MM:SS). Optional vo=narrator cut-in (clip audio auto-ducked), clip_volume, text=burned caption. type=narration needs vo; optional broll(image path rel to repo root) else black; optional text. Replace every TODO_URL before running. Verify facts in config/voiceover_guyger.md.",
+  "_help": "type=clip needs source(YouTube URL)+start+end (HH:MM:SS). Optional: vo=narrator cut-in (clip audio auto-ducked), clip_volume, text=caption, style=headline|lower_third|location, grade=bw (desaturate court/bodycam). type=narration needs vo; optional broll(image rel to repo root, gets Ken-Burns zoom) else black; optional text+style. Replace every TODO_URL before running. Verify facts in config/voiceover_guyger.md.",
   "segments": [
     {
       "id": "0.1", "type": "clip", "source": "TODO_URL_news_anchor_guilty",
       "start": "00:00:00", "end": "00:00:08", "clip_volume": 0.5,
-      "text": "THE STATE OF TEXAS v. AMBER GUYGER"
+      "text": "THE STATE OF TEXAS v. AMBER GUYGER", "style": "headline"
     },
     {
       "id": "0.3", "type": "narration",
@@ -42,13 +42,13 @@
     },
     {
       "id": "3.1", "type": "clip", "source": "TODO_URL_responding_bodycam",
-      "start": "00:00:00", "end": "00:01:20", "clip_volume": 0.8,
+      "start": "00:00:00", "end": "00:01:20", "clip_volume": 0.8, "grade": "bw",
       "vo": "When the responding officers arrived, their body cameras were recording. This is not the officer who fired, she was off duty, and there is no camera on the shooting itself. This is the aftermath.",
       "text": "Responding officer bodycam"
     },
     {
       "id": "4.1", "type": "clip", "source": "TODO_URL_hallway_cctv",
-      "start": "00:00:00", "end": "00:01:20", "clip_volume": 0.6,
+      "start": "00:00:00", "end": "00:01:20", "clip_volume": 0.6, "grade": "bw",
       "vo": "The building's own cameras told part of the story she couldn't. Watch her path that night. The wrong floor. The wrong hallway. The wrong door.",
       "text": "Surveillance — 4th floor"
     },
@@ -60,7 +60,7 @@
     },
     {
       "id": "5.1", "type": "clip", "source": "TODO_URL_guyger_testimony",
-      "start": "00:00:00", "end": "00:02:00", "clip_volume": 0.85,
+      "start": "00:00:00", "end": "00:02:00", "clip_volume": 0.85, "grade": "bw",
       "vo": "Under questioning, the prosecutors took her own version, the one she had told over and over, and walked it backward, one step at a time.",
       "text": "Cross-examination"
     },

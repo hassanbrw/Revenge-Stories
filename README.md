@@ -54,3 +54,64 @@ an alternative but caps at 20 requests/day.
 - Windows console stdout/stderr are reconfigured to UTF-8 at the top of
   `orchestrate.py` — don't remove this, arbitrary Unicode (e.g. a stock-footage
   creator's name) will crash a plain cp1252 console otherwise.
+
+## Court-case video pipeline (clip-driven niche)
+
+A second, separate format for the "corrupt cop / courtroom justice" niche. Unlike
+the family-drama pipeline (100% original AI story), this one is **clip-driven**:
+real 911 / bodycam / CCTV / court footage is the content, and narration only
+bridges between clips. It is driven by a per-video **manifest** (JSON), not a
+generated story.
+
+- **Code:** `pipeline/court_case.py`
+- **Manifest example:** `config/court_cases/guyger.json`
+- **Companion planning docs:** `config/edit_sheet_guyger.md` (per-segment shot
+  list) and `config/voiceover_guyger.md` (word-for-word narration).
+
+### Toolchain (runs on the operator's machine, not a pod)
+
+| Tool | Role | How |
+|---|---|---|
+| **yt-dlp** | download only the needed section of each source clip | `--download-sections` |
+| **ai33.pro** | narrator voiceover | reuses `_synthesize_ai33` from `pipeline/tts.py`; set `AI33_API_KEY` in `.env` |
+| **ffmpeg** | normalise every segment to one canvas + concat | concat demuxer over mpegts intermediates |
+
+### Run
+
+```bash
+python -m pipeline.court_case config/court_cases/guyger.json --dry-run   # validate + print plan
+python -m pipeline.court_case config/court_cases/guyger.json             # download + render -> out/<name>.mp4
+```
+
+### Manifest schema
+
+Top level: `title`, `voice_id` (ai33), `resolution` (default `1280x720`), `fps`,
+`output`, `segments[]`. Each segment is one of:
+
+- **`type: "clip"`** — `source` (YouTube URL) + `start`/`end` (`HH:MM:SS`).
+  Optional: `vo` (narrator cut-in; the clip's own audio is auto-ducked under it),
+  `clip_volume` (default `0.2` when a `vo` is present), `text` (caption),
+  `style`, `grade`.
+- **`type: "narration"`** (bridge, when no footage exists) — `vo` (required).
+  Optional: `broll` (image path relative to repo root; gets a slow **Ken Burns**
+  zoom) — omit for a black hold; `text`, `style`.
+
+Style knobs (matched to the reference channel's look):
+
+- `style`: `headline` (big ALL-CAPS centred, dark box), `lower_third` (news
+  banner, default), `location` (label on a red box, e.g. `"DALLAS, TEXAS"`).
+- `grade: "bw"` on a clip desaturates + lifts contrast — used on courtroom /
+  bodycam footage to signal "serious / past events".
+- Stills always get a slow Ken Burns zoom so nothing sits static.
+- Set `COURT_FONT` in `.env` if ffmpeg's `drawtext` can't find the default font.
+
+### Sourcing / copyright note
+
+Prefer public-record footage (US court hearings, released bodycam, 911 audio).
+Keep third-party news clips short and always over your own narration so the use
+stays transformative/commentary. Log every source per video.
+
+> Optional: since Remotion is already set up in this repo, an animated title
+> card can be rendered with Remotion and dropped in as the first `clip` segment
+> (point `source` at the exported file via a local path) instead of the ffmpeg
+> `headline` caption — the ffmpeg path is the dependency-light default.
