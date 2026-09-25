@@ -225,11 +225,36 @@ def run(max_candidates: int = 5) -> Path | None:
     return None
 
 
+def run_batch(count: int, max_candidates: int = 5) -> list:
+    """Make `count` videos back to back. Each call re-reads _used.json, so every
+    video is a different, not-yet-made case."""
+    made = []
+    for n in range(1, count + 1):
+        print(f"\n########## VIDEO {n}/{count} ##########")
+        try:
+            v = run(max_candidates=max_candidates)
+        except Exception as e:  # noqa: BLE001 - one bad case shouldn't kill the batch
+            print(f"  [error] video {n} failed: {e}")
+            v = None
+        if v:
+            made.append(v)
+        else:
+            print(f"  video {n}: no case passed QA this round.")
+    print(f"\n==== batch done: {len(made)}/{count} videos ====")
+    for v in made:
+        print("  ", v)
+    return made
+
+
 def main():
     ap = argparse.ArgumentParser(description="Fully-auto, QA-gated court-case video maker.")
-    ap.add_argument("--max-candidates", type=int, default=5, help="how many discovered cases to try before giving up")
+    ap.add_argument("--count", type=int, default=1, help="how many videos to make in this run (batch)")
+    ap.add_argument("--max-candidates", type=int, default=5, help="how many discovered cases to try per video before giving up")
     args = ap.parse_args()
-    run(max_candidates=args.max_candidates)
+    if args.count > 1:
+        run_batch(args.count, max_candidates=args.max_candidates)
+    else:
+        run(max_candidates=args.max_candidates)
 
 
 if __name__ == "__main__":

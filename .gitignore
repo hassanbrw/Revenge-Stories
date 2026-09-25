@@ -20,6 +20,16 @@ out/*/*.json
 !out/*/.gitkeep
 logs/*.log
 
+# court-case pipeline outputs (top-level in out/) + auto-sourced media/state
+out/*.mp4
+out/*.mp3
+out/*_work/
+assets/court_case/*
+!assets/court_case/.gitkeep
+config/court_cases/*.resolved.json
+config/court_cases/*.qa.json
+config/court_cases/_used.json
+
 # downloaded/large assets (kept locally, not versioned)
 assets/stock/*
 !assets/stock/.gitkeep
