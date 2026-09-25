@@ -92,6 +92,31 @@ each clip's `start`/`end`, and swap any wrong auto-picked clip (alternatives are
 saved under each clip's `_candidates`). Then render the resolved manifest. If you
 prefer, skip `--fetch` and paste URLs / drop images in by hand.
 
+### The template: one brief per video (recommended)
+
+You don't hand-write a manifest per video. The video **structure** (beats, order,
+styles, B&W grades) is fixed in `pipeline/court_case_generate.py` (`BEATS`). Only
+the **case** changes, via a small **case brief** — the one file you edit per video:
+
+```bash
+# 1. copy the example brief and fill it with REAL facts for your case
+cp config/court_cases/_brief.example.json config/court_cases/<slug>.brief.json
+
+# 2. generate the full manifest (LLM writes narration + captions + search queries
+#    from the brief; it invents nothing — gaps become [VERIFY] markers)
+python -m pipeline.court_case_generate config/court_cases/<slug>.brief.json
+#    -> config/court_cases/<slug>.json
+
+# 3. auto-source, review, render (as below)
+python -m pipeline.court_case config/court_cases/<slug>.json --fetch
+python -m pipeline.court_case config/court_cases/<slug>.resolved.json
+```
+
+The brief fields (`victim`, `officer`, `location`, `date`, `what_happened`,
+`key_detail`, `trial_outcome`, `aftermath`, `footage_notes`) are the only thing
+that changes case to case. Edit `BEATS` once if you ever want to change the format
+for all future videos. (Uses `LLM_PROVIDER` / OpenRouter, same as the story pipeline.)
+
 ### Manifest schema
 
 Top level: `title`, `voice_id` (ai33), `resolution` (default `1280x720`), `fps`,
