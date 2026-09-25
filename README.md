@@ -92,7 +92,25 @@ each clip's `start`/`end`, and swap any wrong auto-picked clip (alternatives are
 saved under each clip's `_candidates`). Then render the resolved manifest. If you
 prefer, skip `--fetch` and paste URLs / drop images in by hand.
 
-### The template: one brief per video (recommended)
+### Fully automatic (one command, QA-gated, zero review)
+
+```bash
+python -m pipeline.court_case_auto
+```
+
+`pipeline/court_case_auto.py` chains the whole flow with no human in the loop:
+discover a fresh case -> research real facts via serper -> **QA-gate the facts**
+(every core fact must be grounded in retrieved web text, or the case is rejected
+and the next one tried) -> generate the manifest -> auto-source images/clips ->
+QA the footage -> render `out/<slug>.mp4`. It dedupes against
+`config/court_cases/_used.json` and writes an auditable `*.qa.json` next to each
+video. Needs `SERPER_API_KEY`, an LLM key, `AI33_API_KEY`, plus yt-dlp + ffmpeg.
+
+QA reduces but can't fully eliminate bad facts from web text — the `.qa.json`
+report makes every claim auditable after the run. Edit `DISCOVERY_QUERIES` /
+`CORE_FIELDS` in `court_case_auto.py` to tune discovery and the strictness gate.
+
+### The template: one brief per video (manual case pick)
 
 You don't hand-write a manifest per video. The video **structure** (beats, order,
 styles, B&W grades) is fixed in `pipeline/court_case_generate.py` (`BEATS`). Only

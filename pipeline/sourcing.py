@@ -19,6 +19,7 @@ from pathlib import Path
 
 from pipeline.config import ROOT, env
 
+SERPER_SEARCH = "https://google.serper.dev/search"
 SERPER_IMAGES = "https://google.serper.dev/images"
 SERPER_VIDEOS = "https://google.serper.dev/videos"
 
@@ -28,6 +29,28 @@ def _key() -> str:
     if not k:
         raise RuntimeError("SERPER_API_KEY not set in .env")
     return k
+
+
+def search_web(query: str, n: int = 10) -> list[dict]:
+    """Return up to n organic web results: [{title, snippet, link}, ...]. Used to
+    gather REAL facts about a case so the brief is grounded in retrieved text
+    rather than model memory."""
+    import requests
+
+    resp = requests.post(
+        SERPER_SEARCH, headers={"X-API-KEY": _key(), "Content-Type": "application/json"},
+        json={"q": query}, timeout=30,
+    )
+    resp.raise_for_status()
+    data = resp.json()
+    out = []
+    for r in data.get("organic", [])[:n]:
+        out.append({
+            "title": r.get("title", ""),
+            "snippet": r.get("snippet", ""),
+            "link": r.get("link", ""),
+        })
+    return out
 
 
 def search_images(query: str, n: int = 10) -> list[dict]:

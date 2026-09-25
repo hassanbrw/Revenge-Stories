@@ -68,7 +68,10 @@ def _slug(text: str) -> str:
 
 def generate(brief_path: str) -> Path:
     brief = json.loads(Path(brief_path).read_text(encoding="utf-8"))
+    return generate_from_brief(brief, source_name=Path(brief_path).name)
 
+
+def generate_from_brief(brief: dict, source_name: str = "(inline)") -> Path:
     beats_for_prompt = [
         {k: b[k] for k in ("id", "type", "role") if k in b} for b in BEATS
     ]
@@ -114,7 +117,7 @@ def generate(brief_path: str) -> Path:
         "resolution": "1280x720",
         "fps": 30,
         "output": f"out/{slug}.mp4",
-        "_generated_from": Path(brief_path).name,
+        "_generated_from": source_name,
         "segments": segments,
     }
     out = ROOT / "config" / "court_cases" / f"{slug}.json"
