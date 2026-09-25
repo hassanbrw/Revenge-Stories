@@ -193,6 +193,12 @@ def build_narration_segment(seg, idx, work, res, fps, voice_id):
 
     out = _seg_path(work, idx)
     broll = seg.get("broll")
+    # Fall back to a black hold if the still hasn't been added yet, so the whole
+    # video can be rendered with clips first and images dropped in later,
+    # instead of crashing on the first missing asset.
+    if broll and not (ROOT / broll).exists():
+        print(f"  [warn] broll not found ({broll}) -> black hold for this segment")
+        broll = None
     if broll:
         # Ken Burns slow-zoom on the still for exactly the VO length, then
         # caption. Matches the reference channel (no static images sit dead).
